@@ -12,9 +12,11 @@
 				}
 			}
 */
+
+
 #include<stdio.h>
 #include<stdlib.h>
-#include<omp.h>   // ?? IMPORTANTE
+#include<omp.h>
 
 #define TOTALSIZE 1000
 #define NUMITER 200
@@ -26,9 +28,9 @@ int main(int argc, char *argv[]) {
   int i, iter;
 
   double *V = (double *) malloc(TOTALSIZE * sizeof(double));
-  double *V_old = (double *) malloc(TOTALSIZE * sizeof(double)); // ? NOVO
+  double *V_new = (double *) malloc(TOTALSIZE * sizeof(double)); // segundo vetor
 
-  // 1. Inicializar vetor
+  // 1. Inicializar
   for(i = 0; i < TOTALSIZE; i++) {
     V[i] = 0.0 + i;
   }
@@ -36,16 +38,18 @@ int main(int argc, char *argv[]) {
   // 2. Iterações
   for(iter = 0; iter < NUMITER; iter++) {
 
-    // ? COPIAR vetor antes de processar
-    for(i = 0; i < TOTALSIZE; i++) {
-      V_old[i] = V[i];
-    }
-
-    // ? Paralelizar corretamente
     #pragma omp parallel for
     for(i = 0; i < TOTALSIZE-1; i++) {
-      V[i] = f(V_old[i], V_old[i+1]);
+      V_new[i] = f(V[i], V[i+1]); // usa V, escreve em V_new
     }
+
+    // IMPORTANTE: último elemento
+    V_new[TOTALSIZE-1] = V[TOTALSIZE-1];
+
+    // Trocar vetores
+    double *temp = V;
+    V = V_new;
+    V_new = temp;
   }
 
   // 3. Output
